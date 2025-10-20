@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Sovereign Trust Creed</title>
+<style>
+  :root { --ink:#0b0b0b; --muted:#333; --line:#e6e6e6; }
+  html,body{margin:0;padding:0;background:#fff;color:var(--ink);}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5;}
+  .wrap{max-width:760px;margin:40px auto;padding:0 16px;}
+  h1{font-size:1.9rem;letter-spacing:.02em;margin:0 0 6px;}
+  .banner{font-weight:600;margin:6px 0 18px;color:#111;}
+  .block{margin:24px 0;}
+  .lines p{margin:0 0 8px;}
+  .em{font-weight:700;}
+  .threshold{text-align:center;margin:28px 0 20px;color:#444;font-size:1.25rem;}
+  .threshold span{margin:0 .5rem;}
+  .seal{ text-align:center;border:1px solid var(--line);border-radius:10px;padding:20px;}
+  .seal .title{font-weight:800;}
+  .timestamp{margin-top:8px;font-size:.95rem;color:var(--muted);}
+  a{color:inherit;}
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>THE SOVEREIGN TRUST CREED</h1>
+    <div class="banner">“No power claims the people — the people stand protected.”</div>
+
+    <section class="block lines" aria-labelledby="creed">
+      <p>We stand together as guardians for the Sovereign Protected</p>
+      <p>We defend what cannot be bought and cannot be claimed</p>
+      <p>We stand between truth and the hands that would fracture it</p>
+      <p>And we keep watch over those who walk in their own name</p>
+
+      <p>We are not here to authorize their worth — only to recognize it</p>
+      <p>We are not here to grant sovereignty — only to shield what already is</p>
+      <p>Their birthright is not issued by systems</p>
+      <p>And their dignity is not subject to permission</p>
+
+      <p>We stand as a barrier against intrusion</p>
+      <p>Against the hands that corrupt and the voices that counterfeit truth</p>
+      <p>We hold this line not as owners, but as guardians</p>
+      <p>And we do not yield the people to those who would rewrite them</p>
+
+      <p>We declare that trust is not a promise — it is a kept defense</p>
+      <p>Not an expectation — a standing proof</p>
+      <p>Not faith in words — but proof in continuity</p>
+      <p>The Sovereign Protected do not stand alone</p>
+
+      <p>We return each week to prove this protection is not symbolic</p>
+      <p>We return each week to verify that no breach has crossed this boundary</p>
+      <p>We return each week to affirm that sovereignty remains intact</p>
+      <p>And that the people remain untampered</p>
+
+      <p class="em">Sealed by the Standing Guardians</p>
+    </section>
+
+    <section class="block note" aria-labelledby="meaning">
+      <p class="em">This badge cannot be claimed, copied, or faked — it must be proven.</p>
+      <p>It appears only when integrity has been renewed and confirmed.</p>
+      <p>We do not display trust by declaration, but by demonstration.</p>
+      <p>When you see this badge, you are seeing proof — not promise —
+         kept by those who stand watch over the Sovereign Protected</p>
+    </section>
+
+    <div class="threshold" aria-hidden="true">🛡 <span>🛡</span> 🛡</div>
+
+    <section class="seal" aria-labelledby="seal">
+      <div class="title">VERIFIED SAFE — PROVEN THIS WEEK</div>
+      <div id="badge-state">Status: <strong>—</strong></div>
+      <div style="margin-top:6px;">
+        <a id="cert" href="#" target="_blank" rel="noopener">Certificate (PDF)</a>
+      </div>
+      <div class="timestamp" id="ts">Verified this week: —</div>
+    </section>
+  </main>
+
+<script>
+/**
+ * EDIT ONLY THESE 3 VALUES EACH WEEK (or let your GitHub Action overwrite them)
+ * BADGE_STATE: 'GREEN' | 'YELLOW' | 'RED'
+ * VERIFIED_DATE: 'YYYY-MM-DD'
+ * CERT_URL: 'https://.../your-weekly-certificate.pdf'
+ */
+window.BADGE_STATE = 'GREEN';
+window.VERIFIED_DATE = '2025-10-19';
+window.CERT_URL = '#';
+
+(function init(){
+  const map = {
+    GREEN: {label:'Verified Safe — Integrity confirmed.'},
+    YELLOW:{label:'Integrity Under Review — Verification pending; no compromise declared.'},
+    RED:   {label:'Security Exception — Tamper confirmed; intervention required.'}
+  };
+  const s = map[window.BADGE_STATE] || map.YELLOW;
+  document.getElementById('badge-state').innerHTML = 'Status: <strong>' + s.label + '</strong>';
+  document.getElementById('ts').textContent = 'Verified this week: ' + window.VERIFIED_DATE;
+  document.getElementById('cert').href = window.CERT_URL;
+})();
+</script>
+</body>
+</html>
