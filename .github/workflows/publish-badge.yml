@@ -10,10 +10,10 @@ on:
         options: [GREEN, YELLOW, RED]
         default: GREEN
       verified_date:
-        description: "Verified date (YYYY-MM-DD)"
+        description: "Verified date (2025-10-28)"
         type: string
         required: true
-        default: "2025-11-02"
+        default: "2025-10-28"
       certificate_url:
         description: "Link to weekly certificate PDF (or #)"
         type: string
