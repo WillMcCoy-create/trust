@@ -1,4 +1,3 @@
-
 name: Publish Weekly Badge
 
 on:
@@ -16,17 +15,10 @@ on:
         required: true
         default: "2025-11-02"
       certificate_url:
-        description: "Full URL to the weekly certificate PDF"
+        description: "Full URL to the weekly certificate PDF (or #)"
         type: string
         required: false
-        default: ""
-  push:
-    paths:
-      - "certs/*.pdf"
-    branches: [ main ]
-  # Sunday 8:45 PM America/Chicago ≈ 01:45 UTC Monday
-  schedule:
-    - cron: "45 1 * * 1"
+        default: "#"
 
 jobs:
   publish:
@@ -35,68 +27,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Determine inputs (manual / pdf-push / schedule)
+      - name: Set metadata
         id: meta
-        shell: bash
         run: |
-          set -euo pipefail
-          EVENT="${{ github.event_name }}"
-          REPO_OWNER="${{ github.repository_owner }}"
-          REPO_NAME="$(basename '${{ github.repository }}')"
+          echo "status=${{ github.event.inputs.status }}" >> $GITHUB_OUTPUT
+          echo "verified_date=${{ github.event.inputs.verified_date }}" >> $GITHUB_OUTPUT
+          echo "certificate_url=${{ github.event.inputs.certificate_url }}" >> $GITHUB_OUTPUT
 
-          STATUS="${{ github.event.inputs.status || '' }}"
-          DATE_IN="${{ github.event.inputs.verified_date || '' }}"
-          CERT_URL_IN="${{ github.event.inputs.certificate_url || '' }}"
-
-          latest_pdf_path=""
-
-          if [[ "$EVENT" == "push" ]]; then
-            latest_pdf_path="$(git diff --name-only HEAD~1 | grep -E '^certs/.*\.pdf$' || true)"
-            if [[ -n "$latest_pdf_path" ]]; then
-              DATE_FROM_NAME="$(basename "$latest_pdf_path" .pdf)"
-              DATE_IN="${DATE_IN:-$DATE_FROM_NAME}"
-              CERT_URL_IN="${CERT_URL_IN:-https://${REPO_OWNER}.github.io/${REPO_NAME}/$latest_pdf_path}"
-            fi>
-            STATUS="${STATUS:-GREEN}"
-          fi
-
-          if [[ "$EVENT" == "schedule" && -z "${DATE_IN}" ]]; then
-            latest_pdf_path="$(git ls-files certs/*.pdf 2>/dev/null | sort | tail -n1 || true)"
-            if [[ -n "$latest_pdf_path" ]]; then
-              DATE_FROM_NAME="$(basename "$latest_pdf_path" .pdf)"
-              DATE_IN="$DATE_FROM_NAME"
-              CERT_URL_IN="${CERT_URL_IN:-https://${REPO_OWNER}.github.io/${REPO_NAME}/$latest_pdf_path}"
-              STATUS="${STATUS:-GREEN}"
-            else
-              DATE_IN="$(date -u +%Y-%m-%d)"
-              STATUS="${STATUS:-YELLOW}"
-              CERT_URL_IN="${CERT_URL_IN:-#}"
-            fi
-          fi
-
-          STATUS="${STATUS:-GREEN}"
-          DATE_IN="${DATE_IN:-$(date -u +%Y-%m-%d)}"
-          CERT_URL_IN="${CERT_URL_IN:-#}"
-
-          echo "status=$STATUS"           >> $GITHUB_OUTPUT
-          echo "verified_date=$DATE_IN"   >> $GITHUB_OUTPUT
-          echo "certificate_url=$CERT_URL_IN" >> $GITHUB_OUTPUT
-
-      - name: Update index.html (replace badge-config block safely)
-        shell: bash
+      - name: Update index.html (replace badge block)
         run: |
-          set -euo pipefail
           FILE="index.html"
-          [[ -f "$FILE" ]] || { echo "index.html not found at repo root"; exit 1; }
-
-          STATUS='${{ steps.meta.outputs.status }}'
-          DATE='${{ steps.meta.outputs.verified_date }}'
-          CERT='${{ steps.meta.outputs.certificate_url }}'
-
-          # Replace the whole badge-config block safely (handles slashes, #, & etc.)
-          perl -0777 -pe "s|<script id=\"badge-config\">.*?</script>|<script id=\"badge-config\">\n  window.BADGE_STATE='$STATUS';\n  window.VERIFIED_DATE='$DATE';\n  window.CERT_URL='$CERT';\n</script>|s" -i "$FILE"
-
-          echo "Updated: STATUS=${STATUS}, DATE=${DATE}, CERT=${CERT}"
+          perl -0777 -pe "s|<script id=\"badge-config\">.*?</script>|<script id=\"badge-config\">\n  window.BADGE_STATE='${{ steps.meta.outputs.status }}';\n  window.VERIFIED_DATE='${{ steps.meta.outputs.verified_date }}';\n  window.CERT_URL='${{ steps.meta.outputs.certificate_url }}';\n</script>|s" -i "$FILE"
 
       - name: Commit & push changes
         uses: stefanzweifel/git-auto-commit-action@v5
