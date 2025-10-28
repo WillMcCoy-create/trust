@@ -1,3 +1,4 @@
+
 name: Publish Weekly Badge
 
 on:
@@ -55,7 +56,7 @@ jobs:
               DATE_FROM_NAME="$(basename "$latest_pdf_path" .pdf)"
               DATE_IN="${DATE_IN:-$DATE_FROM_NAME}"
               CERT_URL_IN="${CERT_URL_IN:-https://${REPO_OWNER}.github.io/${REPO_NAME}/$latest_pdf_path}"
-            fi
+            fi>
             STATUS="${STATUS:-GREEN}"
           fi
 
@@ -81,7 +82,7 @@ jobs:
           echo "verified_date=$DATE_IN"   >> $GITHUB_OUTPUT
           echo "certificate_url=$CERT_URL_IN" >> $GITHUB_OUTPUT
 
-      - name: Update index.html (replace the 3 lines)
+      - name: Update index.html (replace badge-config block safely)
         shell: bash
         run: |
           set -euo pipefail
@@ -92,9 +93,8 @@ jobs:
           DATE='${{ steps.meta.outputs.verified_date }}'
           CERT='${{ steps.meta.outputs.certificate_url }}'
 
-          sed -i "s/window.BADGE_STATE *= *'.*'/window.BADGE_STATE='${STATUS}'/" "$FILE"
-          sed -i "s/window.VERIFIED_DATE *= *'.*'/window.VERIFIED_DATE='${DATE}'/" "$FILE"
-          sed -i "s#window.CERT_URL *= *'.*'#window.CERT_URL='${CERT}'#" "$FILE"
+          # Replace the whole badge-config block safely (handles slashes, #, & etc.)
+          perl -0777 -pe "s|<script id=\"badge-config\">.*?</script>|<script id=\"badge-config\">\n  window.BADGE_STATE='$STATUS';\n  window.VERIFIED_DATE='$DATE';\n  window.CERT_URL='$CERT';\n</script>|s" -i "$FILE"
 
           echo "Updated: STATUS=${STATUS}, DATE=${DATE}, CERT=${CERT}"
 
