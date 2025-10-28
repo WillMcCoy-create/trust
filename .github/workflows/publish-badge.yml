@@ -4,24 +4,28 @@ on:
   workflow_dispatch:
     inputs:
       status:
+        description: "Badge status"
+        type: choice
+        required: true
+        options: [GREEN, YELLOW, RED]
+        default: GREEN
       verified_date:
+        description: "Verified date (YYYY-MM-DD)"
+        type: string
+        required: true
+        default: "2025-11-02"
       certificate_url:
-  schedule:
-    - cron: "0 3 * * 1"
-  description: "Badge status"
-  type: choice
-  required: true
-  options: [GREEN, YELLOW, RED]
-  default: GREEN
-description: "Verified date (YYYY-MM-DD)"
-type: string 
-required: true 
-default: "2025-11-02"
-certificate_url:
         description: "Link to weekly certificate PDF (or #)"
         type: string
         required: false
         default: "#"
+
+  schedule:
+    # Every Monday at 03:00 UTC
+    - cron: "0 3 * * 1"
+
+permissions:
+  contents: write
 
 jobs:
   publish:
@@ -30,17 +34,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set metadata
+      - name: Set metadata (with fallbacks for schedule)
         id: meta
+        shell: bash
         run: |
-          echo "status=${{ github.event.inputs.status }}" >> $GITHUB_OUTPUT
-          echo "verified_date=${{ github.event.inputs.verified_date }}" >> $GITHUB_OUTPUT
-          echo "certificate_url=${{ github.event.inputs.certificate_url }}" >> $GITHUB_OUTPUT
+          STATUS="${{ github.event.inputs.status }}"
+          VERIFIED="${{ github.event.inputs.verified_date }}"
+          CERT="${{ github.event.inputs.certificate_url }}"
+          : "${STATUS:=GREEN}"
+          : "${VERIFIED:=$(date -u +%F)}"
+          : "${CERT:=#}"
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          echo "verified_date=$VERIFIED" >> "$GITHUB_OUTPUT"
+          echo "certificate_url=$CERT" >> "$GITHUB_OUTPUT"
 
       - name: Update index.html (replace badge block)
+        shell: bash
         run: |
           FILE="index.html"
-          perl -0777 -pe "s|<script id=\"badge-config\">[\\s\\S]*?</script>|<script id=\"badge-config\">\n  window.STATUS='${{ steps.meta.outputs.status }}';\n  window.VERIFIED_DATE='${{ steps.meta.outputs.verified_date }}';\n  window.CERT_URL='${{ steps.meta.outputs.certificate_url }}';\n</script>|s" -i \"$FILE\"
+          perl -0777 -pe 's|<script id="badge-config">[\s\S]*?</script>|<script id="badge-config">\n  window.BADGE_STATUS='\''${{ steps.meta.outputs.status }}'\'';\n  window.VERIFIED_DATE='\''${{ steps.meta.outputs.verified_date }}'\'';\n  window.CERT_URL='\''${{ steps.meta.outputs.certificate_url }}'\'';\n</script>|s' -i "$FILE"
 
       - name: Commit & push changes
         uses: stefanzweifel/git-auto-commit-action@v5
